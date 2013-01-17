@@ -1,11 +1,11 @@
 package code.api
 
 import net.liftweb._
-import common.Full
+import common.{Empty, Box, Full}
 import http._
 import rest._
 
-import code.lib.SimpleProcessor
+import code.lib.RestAddons._
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,28 +14,25 @@ import code.lib.SimpleProcessor
  * Time: 4:46 PM
  * To change this template use File | Settings | File Templates.
  */
-object Processor1 extends SimpleProcessor with common.Loggable {
-  val matchLength = ("p1" :: Nil).length
+object Processor1 extends ProtectedHelper with common.Loggable {
+  protect {
+    case Req(List("p1",_*), _, _) => println("Processor1:p1");Full(PlainTextResponse("This ain't P1"))
+    case Req(List("p2",_*), _, _) => println("Processor1:p2");Empty
+  }
   serve{
     case "p1":: Nil Get _ =>
     logger.info("p1 get Called!")
     OkResponse()
   }
 }
-object Processor2 extends SimpleProcessor with common.Loggable {
-  val matchLength = ("p2" :: Nil).length
+object Processor2 extends ProtectedHelper with common.Loggable {
+  protect {
+    //case Req(List("p2",_*), _, _) => println("Processor2:p2");Full(PlainTextResponse("This ain't P2"))
+    case Req(List("p1",_*), _, _) => println("Processor2:p1");Empty
+  }
   serve{
     case "p2":: Nil Get _ =>
       logger.info("p2 get Called!")
       OkResponse()
   }
-}
-
-object SimpleAPI extends RestHelper with common.Loggable {
-  println("working")
-  serve (Processor1 prefix {
-    case "simple" :: Nil Get _ =>
-    logger.info("simple got called!")
-    PlainTextResponse("simple got  called!")
-  })
 }

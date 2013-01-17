@@ -13,6 +13,7 @@ import mapper._
 
 import code.model._
 import net.liftmodules.JQueryModule
+import code.api._
 
 
 /**
@@ -81,5 +82,13 @@ class Boot {
 
     // Make a transaction span the whole HTTP request
     S.addAround(DB.buildLoanWrapper)
+    Processor1 :: Processor2 ::  Nil
+    LiftRules.dispatch.append(Processor1)
+    LiftRules.dispatch.append(Processor2)
+    LiftRules.onBeginServicing.append({
+      req =>
+        println("##got request:" + req)
+        println("Is Defined? " + LiftRules.dispatch.toList.find(_.isDefinedAt(req)))
+    })
   }
 }
