@@ -14,6 +14,7 @@ import mapper._
 import code.model._
 import net.liftmodules.JQueryModule
 import code.api._
+import preprocessors.TestAPI
 
 
 /**
@@ -85,6 +86,7 @@ class Boot {
     Processor1 :: Processor2 ::  Nil
     LiftRules.dispatch.append(Processor1)
     LiftRules.dispatch.append(Processor2)
+    LiftRules.dispatch.append(TestAPI)
     LiftRules.onBeginServicing.append({
       req =>
         println("##got request:" + req)
