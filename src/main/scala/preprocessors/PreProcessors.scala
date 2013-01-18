@@ -34,7 +34,7 @@ object PreProcessors {
     /**
      * Define a preprocessor
 */
-    def preProcess(pp: PreProcessor) { preprocessors ::= pp }
+    def preProcess(pp: PreProcessor) { preprocessors = preprocessors ::: List(pp) }
 
     /**
      * Implicit that converts simple functions to preprocessor partial functions

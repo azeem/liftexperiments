@@ -27,6 +27,7 @@ object TestAPI extends RestHelperWithPreProcessors {
    * Simple Preprocessor, will be executed for every case
    */
   preProcess { req:Req =>
+    println("A")
     someData(Full("Some Data"))
     Empty
   }
@@ -37,6 +38,7 @@ object TestAPI extends RestHelperWithPreProcessors {
    * with 401 if no auth header is found
    */
   preProcess { case "api" :: _ AnyReq req =>
+    println("B")
     req.header("Authorization").map { auth =>
       currentUser(Full("azeem")) // extract something and put in request var
       Empty
@@ -50,7 +52,17 @@ object TestAPI extends RestHelperWithPreProcessors {
    * Extract common parameters and put them into request vars
    */
   preProcess { case List("api", _, "organization", org, _*) Get req =>
+    println("C")
     organization(Full(org))
+    Empty
+  }
+
+  /**
+   * Preprocessor that dumps all the request
+   */
+  preProcess { req:Req =>
+    println("D")
+    dumpRequestVars()
     Empty
   }
 
