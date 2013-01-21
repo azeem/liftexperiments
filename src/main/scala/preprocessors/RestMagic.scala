@@ -4,6 +4,7 @@ import net.liftweb.http.{Req, LiftResponse}
 import net.liftweb.common.{Empty, Full, Box}
 import net.liftweb.http.rest.RestHelper
 import scala.util.control.Breaks._
+import util.matching.Regex
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,7 +13,7 @@ import scala.util.control.Breaks._
  * Time: 1:50 PM
  * To change this template use File | Settings | File Templates.
  */
-object PreProcessors {
+object RestMagic {
   /**
    * Preprocessor is a partial function from Req to Box[LiftResponse]
    * it can be used to
@@ -53,17 +54,39 @@ object PreProcessors {
      * and the LiftResponse is sent instead executing the serve blocks
      */
     override def apply(req: Req) = {
-      var shortCircuit: Box[LiftResponse] = Empty
-      breakable {
-        preprocessors.filter(_.isDefinedAt(req)).foreach { pp =>
-          val resp = pp.apply(req)
-          if(resp.isDefined) {
-            shortCircuit = resp
-            break
-          }
-        }
-      }
-      shortCircuit.map(r => () => Full(r)).getOrElse(super.apply(req))
+      val shortCircuit = preprocessors.filter(_.isDefinedAt(req)).iterator.map(_.apply(req)).find(_.isDefined)
+      shortCircuit.map(r => () => r).getOrElse(super.apply(req))
     }
   }
+
+
+  val Number = "\\d+"
+  val AlphaNum = "\\w+"
+  val Hex = "[a-fA-F0-9]+"
+  val Hash = "[a-fA-F0-9\\-]+"
+
+  class PrefixMagic(list: List[String]) {
+    val len = list.length
+    val elems = list.map(str => new Regex(str))
+
+    def prefixMatch(target: List[String]) = {
+      if(target.length >= len) {
+        target.take(len).zip(elems).forall { case (str, reg) =>
+          reg.pattern.matcher(str).matches()
+        }
+      } else false
+    }
+
+    def prefixes(pf: PartialFunction[Req, ()=>Box[LiftResponse]]): PartialFunction[Req, ()=>Box[LiftResponse]] = {
+      new PartialFunction[Req, ()=>Box[LiftResponse]] {
+        def isDefinedAt(req: Req) = {
+          prefixMatch(req.path.partPath) && pf.isDefinedAt(req.withNewPath(req.path.drop(len)))
+        }
+
+        def apply(req: Req) = pf.apply(req.withNewPath(req.path.drop(len)))
+      }
+    }
+  }
+
+  implicit def listToPrefixMagic(list: List[String]) = new PrefixMagic(list)
 }

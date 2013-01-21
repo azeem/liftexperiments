@@ -1,6 +1,6 @@
 package preprocessors
 
-import PreProcessors._
+import RestMagic._
 import net.liftweb.http.{LiftResponse, PlainTextResponse, RequestVar, Req}
 import net.liftweb.common.{Box, Full, Empty}
 
@@ -20,7 +20,7 @@ object TestAPI extends RestHelperWithPreProcessors {
 
   ////////// preProcess blocks //////////
 
-  // All the following serve blocks will be executed,
+  // All the following preProcess blocks will be executed,
   // shortcircuting breaks the chain and returns response directly
 
   /**
@@ -70,14 +70,14 @@ object TestAPI extends RestHelperWithPreProcessors {
 
   // Clean serves, no repeated boiler plate. Wohooo!!
 
-  serve {
-    case "api" :: "v1" :: "organization" :: "hello" :: Nil Get req => {
+  serve("api" / "v1" / Number prefixes {
+    case "organization" :: "hello" :: Nil Get req => {
       dumpRequestVars()
       println("Inside /api/v1/organization/hello")
       PlainTextResponse("Inside /api/v1/organization/hello")
     }
 
-    case "api" :: "v1" :: "about" :: Nil Post req => {
+    case "about" :: Nil Post req => {
       dumpRequestVars()
       print("Inside /api/v1/about")
       PlainTextResponse("Welcome to the test API")
@@ -88,7 +88,7 @@ object TestAPI extends RestHelperWithPreProcessors {
       print("Inside /some/public/endpoint")
       PlainTextResponse("This is some random API endpoint")
     }
-  }
+  })
 
   /**
    * Dump all request vars
